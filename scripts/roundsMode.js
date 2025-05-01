@@ -490,3 +490,24 @@ if (e.code === "Tab" && document.activeElement == GlobalRoundsModeLogCancelBtn &
     return;
 }
 }
+
+function deleteRound(idx) {
+  if (idx < 0 || idx >= rounds.length) return;
+
+  rounds.splice(idx, 1);                                   
+  localStorage.setItem('rounds', JSON.stringify(rounds));  
+  populateRoundsTable();                                   
+
+  bootstrap.Modal.getInstance(
+    document.getElementById('confirmDeleteModal')
+  ).hide();
+}
+
+function confirmDelete(rowIndex) {
+  document.getElementById('confirmDeleteBtn').onclick =
+    () => deleteRound(rowIndex);
+
+  new bootstrap.Modal(
+    document.getElementById('confirmDeleteModal')
+  ).show();
+}
