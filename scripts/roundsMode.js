@@ -491,23 +491,52 @@ if (e.code === "Tab" && document.activeElement == GlobalRoundsModeLogCancelBtn &
 }
 }
 
-function deleteRound(idx) {
-  if (idx < 0 || idx >= rounds.length) return;
-
-  rounds.splice(idx, 1);                                   
-  localStorage.setItem('rounds', JSON.stringify(rounds));  
-  populateRoundsTable();                                   
-
-  bootstrap.Modal.getInstance(
-    document.getElementById('confirmDeleteModal')
-  ).hide();
-}
-
-function confirmDelete(rowIndex) {
+/*********************************************************************
+ * confirmDelete(roundNum)
+ * Pops up the confirmation dialog and wires the Delete button
+ * to call deleteRound(roundNum).
+ *********************************************************************/
+function confirmDelete(roundNum) {
+  // Bind Delete button for this specific round
   document.getElementById('confirmDeleteBtn').onclick =
-    () => deleteRound(rowIndex);
+    () => deleteRound(roundNum);
 
+  // Show the Bootstrap modal
   new bootstrap.Modal(
     document.getElementById('confirmDeleteModal')
   ).show();
+}
+
+/*********************************************************************
+ * deleteRound(roundNum)
+ * 1. Locate the real array index for the given roundNum.
+ * 2. Remove the round from the in-memory model.
+ * 3. Persist the change to localStorage.
+ * 4. Re-render the table.
+ * 5. Close the modal.
+ *********************************************************************/
+function deleteRound(roundNum) {
+  // 1. Find the index of the round with this roundNum
+  const idx = GlobalUserData.rounds.findIndex(
+    r => r.roundNum === roundNum
+  );
+  if (idx === -1) return;                 // roundNum not found, abort
+
+  // 2. Remove the round from the model
+  GlobalUserData.rounds.splice(idx, 1);
+  GlobalUserData.roundCount--;            // keep the counter in sync
+
+  // 3. Persist the updated user data
+  localStorage.setItem(
+    GlobalUserData.accountInfo.email,
+    JSON.stringify(GlobalUserData)
+  );
+
+  // 4. Refresh the table UI
+  populateRoundsTable();
+
+  // 5. Close the confirmation modal
+  bootstrap.Modal.getInstance(
+    document.getElementById('confirmDeleteModal')
+  ).hide();
 }
