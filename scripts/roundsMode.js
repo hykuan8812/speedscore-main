@@ -216,7 +216,22 @@ function updateRoundInTable(rowIndex) {
 const thisRound = document.getElementById("r-" + GlobalUserData.rounds[rowIndex].roundNum);
 writeRoundToTable(thisRound,rowIndex);
 }
-
+/*---------------------------------------------------------------*
+ | updateRoundsCaption                                           |
+ | Updates the <caption> text to reflect the current number      |
+ | of rounds stored in GlobalUserData.rounds.                    |
+ *---------------------------------------------------------------*/
+ function updateRoundsCaption() {
+  if (GlobalUserData.rounds.length === 1) {
+    GlobalRoundsTableCaption.textContent =
+      "Table displaying 1 speedgolf round";
+  } else {
+    GlobalRoundsTableCaption.textContent =
+      "Table displaying " +
+      GlobalUserData.rounds.length +
+      " speedgolf rounds";
+  }
+}
 /*************************************************************************
 * @function populateRoundsTable 
 * @desc 
@@ -489,4 +504,57 @@ if (e.code === "Tab" && document.activeElement == GlobalRoundsModeLogCancelBtn &
     e.preventDefault();
     return;
 }
+}
+
+/*********************************************************************
+ * confirmDelete(roundNum)
+ * Pops up the confirmation dialog and wires the Delete button
+ * to call deleteRound(roundNum).
+ *********************************************************************/
+function confirmDelete(roundNum) {
+  // Bind Delete button for this specific round
+  document.getElementById('confirmDeleteBtn').onclick =
+    () => deleteRound(roundNum);
+
+  // Show the Bootstrap modal
+  new bootstrap.Modal(
+    document.getElementById('confirmDeleteModal')
+  ).show();
+}
+
+/*********************************************************************
+ * deleteRound(roundNum)
+ * 1. Locate the array index for the given roundNum.
+ * 2. Remove the round from the in-memory model.
+ * 3. Persist the change to localStorage.
+ * 4. Remove the corresponding <tr> from the table and refresh the
+ *    <caption> text.
+ * 5. Close the confirmation modal.
+ *********************************************************************/
+function deleteRound(roundNum) {
+  // 1. Find the index in the array
+  const idx = GlobalUserData.rounds.findIndex(
+    r => r.roundNum === roundNum
+  );
+  if (idx === -1) return;                      // Nothing to delete
+
+  // 2. Remove from the model
+  GlobalUserData.rounds.splice(idx, 1);
+  GlobalUserData.roundCount--;
+
+  // 3. Persist to localStorage
+  localStorage.setItem(
+    GlobalUserData.accountInfo.email,
+    JSON.stringify(GlobalUserData)
+  );
+
+  // 4. Remove the row from the DOM and update caption
+  const row = document.getElementById("r-" + roundNum); // id="r-<roundNum>"
+  if (row) row.remove();
+  updateRoundsCaption();
+
+  // 5. Close the Bootstrap modal
+  bootstrap.Modal.getInstance(
+    document.getElementById("confirmDeleteModal")
+  ).hide();
 }
